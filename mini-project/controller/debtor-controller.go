@@ -65,16 +65,16 @@ func UpdateDebtorController(c echo.Context) error {
 
 	var debtors []model.Debtor
 
-	// id, err := strconv.Atoi(c.Param("id"))
-	// if err != nil {
-	// 	return err
-	// }
-
 	name := c.FormValue("name")
 	email := c.FormValue("email")
 	password := c.FormValue("password")
 
-	debtorById := config.DB.Model(&debtors).Where("id = ?", claims.Id).Updates(model.Debtor{Name: name, Email: email, Password: password})
+	hashPassword, err := utils.HashPassword(password)
+	if err != nil {
+		return err
+	}
+
+	debtorById := config.DB.Model(&debtors).Where("id = ?", claims.Id).Updates(model.Debtor{Name: name, Email: email, Password: hashPassword})
 
 	if err := debtorById.Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
