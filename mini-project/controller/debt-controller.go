@@ -126,21 +126,28 @@ func GetAllDebtByTimeController(c echo.Context) error {
 	claims := user.Claims.(*JwtCustomClaims)
 
 	type Result struct {
-		Debt      []model.Debt
-		TotalDebt int
+		CreditorName string
+		Date         datatypes.Date
+		Amount       int
+		Detail       string
+	}
+
+	type Result2 struct {
+		Total int
 	}
 
 	var debts []model.Debt
 	var debtByTime *gorm.DB
 	var debtByTime2 *gorm.DB
 	var resultErr error
-	var result Result
+	var result []Result
+	var result2 []Result2
 
 	timeDesc := TimeDesc(c)
 
 	for _, value := range timeDesc {
-		debtByTime = config.DB.Model(&debts).Where("date = ? AND debtor_id = ?", value, claims.Id).Find(&result.Debt)
-		debtByTime2 = config.DB.Model(&debts).Select("sum(amount)").Where("date = ? AND debtor_id = ?", value, claims.Id).Find(&result.TotalDebt)
+		debtByTime = config.DB.Model(&debts).Select("creditor_name AS creditor_name, date AS date, amount AS amount, detail AS detail").Where("date = ? AND debtor_id = ?", value, claims.Id).Find(&result)
+		debtByTime2 = config.DB.Model(&debts).Select("sum(amount) AS total").Where("date = ? AND debtor_id = ?", value, claims.Id).Find(&result2)
 
 		if err := debtByTime.Error; err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -151,7 +158,8 @@ func GetAllDebtByTimeController(c echo.Context) error {
 		}
 
 		resultErr = c.JSON(http.StatusOK, map[string]interface{}{
-			value: result,
+			value:        result,
+			"total debt": result2,
 		})
 	}
 
