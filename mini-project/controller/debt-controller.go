@@ -207,7 +207,7 @@ func GetAllDebtByCreditorController(c echo.Context) error {
 	creditorNameDesc := CreditorNameAsc(c)
 
 	for _, value := range creditorNameDesc {
-		debtByCreditor = config.DB.Model(&debts).Select("creditor_name AS creditor_name, date AS date, amount AS amount, detail AS detail").Where("creditor_name = ? AND debtor_id = ?", value, claims.Id).Find(&result)
+		debtByCreditor = config.DB.Model(&debts).Where("creditor_name = ? AND debtor_id = ?", value, claims.Id).Find(&result)
 		debtByCreditor2 = config.DB.Model(&debts).Select("sum(amount) AS total").Where("creditor_name = ? AND debtor_id = ?", value, claims.Id).Find(&result2)
 
 		if err := debtByCreditor.Error; err != nil {
