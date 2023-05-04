@@ -304,7 +304,7 @@ func GetDebtByCreditorController(c echo.Context) error {
 	creditor := c.QueryParam("creditor_name")
 
 	debtByCreditor := config.DB.Model(&debts).Select("sum(amount) AS total").Where("creditor_name = ? AND debtor_id = ?", creditor, claims.Id).Find(&result)
-	debtByCreditor2 := config.DB.Model(&debts).Select("creditor_name AS creditor_name, date AS date, amount AS amount, detail AS detail").Where("creditor_name = ? AND debtor_id = ?", creditor, claims.Id).Find(&result2)
+	debtByCreditor2 := config.DB.Model(&debts).Where("creditor_name = ? AND debtor_id = ?", creditor, claims.Id).Find(&result2)
 
 	if err := debtByCreditor.Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -315,8 +315,8 @@ func GetDebtByCreditorController(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"total": result,
-		"debts": result2,
+		"total debt": result,
+		creditor:     result2,
 	})
 }
 
