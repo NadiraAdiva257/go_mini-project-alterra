@@ -265,7 +265,7 @@ func GetDebtByTimeController(c echo.Context) error {
 	date := c.QueryParam("date")
 
 	debtByTime := config.DB.Model(&debts).Select("sum(amount) AS total").Where("date = ? AND debtor_id = ?", date, claims.Id).Find(&result)
-	debtByTime2 := config.DB.Model(&debts).Select("creditor_name AS creditor_name, date AS date, amount AS amount, detail AS detail").Where("date = ? AND debtor_id = ?", date, claims.Id).Find(&result2)
+	debtByTime2 := config.DB.Model(&debts).Where("date = ? AND debtor_id = ?", date, claims.Id).Find(&result2)
 
 	if err := debtByTime.Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -276,8 +276,8 @@ func GetDebtByTimeController(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"total": result,
-		"debts": result2,
+		"total debt": result,
+		date:         result2,
 	})
 }
 
