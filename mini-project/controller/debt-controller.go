@@ -38,20 +38,14 @@ func CreateDebtController(c echo.Context) error {
 		return err
 	}
 
-	debt_category_id, err := strconv.Atoi(c.FormValue("debt_category_id"))
-	if err != nil {
-		return err
-	}
-
 	detail := c.FormValue("detail")
 
 	debt := model.Debt{
-		CreditorName:   creditor_name,
-		Date:           datatypes.Date(date),
-		Amount:         amount,
-		DebtCategoryID: debt_category_id,
-		Detail:         detail,
-		DebtorID:       claims.Id,
+		CreditorName: creditor_name,
+		Date:         datatypes.Date(date),
+		Amount:       amount,
+		Detail:       detail,
+		DebtorID:     claims.Id,
 	}
 
 	if err := config.DB.Save(&debt).Error; err != nil {
@@ -89,15 +83,10 @@ func UpdateDebtController(c echo.Context) error {
 		return err
 	}
 
-	debt_category_id, err := strconv.Atoi(c.FormValue("debt_category_id"))
-	if err != nil {
-		return err
-	}
-
 	detail := c.FormValue("detail")
 
 	debtById := config.DB.Model(&debts).Where("id = ? AND debtor_id = ?", id, claims.Id).Updates(model.Debt{
-		CreditorName: creditor_name, Date: datatypes.Date(date), Amount: amount, DebtCategoryID: debt_category_id, Detail: detail})
+		CreditorName: creditor_name, Date: datatypes.Date(date), Amount: amount, Detail: detail})
 
 	if err := debtById.Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())

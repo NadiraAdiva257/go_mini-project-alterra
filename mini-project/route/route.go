@@ -40,7 +40,5 @@ func New() *echo.Echo {
 	e.POST("/debtors/login", controller.LoginDebtorController)
 	groupDebtors.PUT("", controller.UpdateDebtorController)
 
-	e.POST("/debt-categories", controller.CreateDebtCategoryController)
-
 	return e
 }
