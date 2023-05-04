@@ -233,17 +233,24 @@ func GetDebtByTimeController(c echo.Context) error {
 	claims := user.Claims.(*JwtCustomClaims)
 
 	type Result struct {
-		Debt      []model.Debt
-		TotalDebt int
+		Total int
+	}
+
+	type Result2 struct {
+		CreditorName string
+		Date         datatypes.Date
+		Amount       int
+		Detail       string
 	}
 
 	var debts []model.Debt
-	var result Result
+	var result []Result
+	var result2 []Result2
 
 	date := c.QueryParam("date")
 
-	debtByTime := config.DB.Model(&debts).Select("sum(amount)").Where("date = ? AND debtor_id = ?", date, claims.Id).Find(&result.TotalDebt)
-	debtByTime2 := config.DB.Where("date = ? AND debtor_id = ?", date, claims.Id).Find(&result.Debt)
+	debtByTime := config.DB.Model(&debts).Select("sum(amount) AS total").Where("date = ? AND debtor_id = ?", date, claims.Id).Find(&result)
+	debtByTime2 := config.DB.Model(&debts).Select("creditor_name AS creditor_name, date AS date, amount AS amount, detail AS detail").Where("date = ? AND debtor_id = ?", date, claims.Id).Find(&result2)
 
 	if err := debtByTime.Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -254,7 +261,8 @@ func GetDebtByTimeController(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"result": result,
+		"total": result,
+		"debts": result2,
 	})
 }
 
