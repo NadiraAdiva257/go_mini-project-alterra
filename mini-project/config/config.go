@@ -51,7 +51,6 @@ func InitDB() {
 }
 
 func InitialMigration() {
-	DB.AutoMigrate(&model.Debtor{}, &model.DebtCategory{}, &model.Debt{})
+	DB.AutoMigrate(&model.Debtor{}, &model.Debt{})
 	DB.Migrator().CreateConstraint(&model.Debtor{}, "Debts")
-	DB.Migrator().CreateConstraint(&model.DebtCategory{}, "Debts")
 }
