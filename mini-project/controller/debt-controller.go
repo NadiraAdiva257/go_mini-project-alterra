@@ -187,21 +187,28 @@ func GetAllDebtByCreditorController(c echo.Context) error {
 	claims := user.Claims.(*JwtCustomClaims)
 
 	type Result struct {
-		Debt      []model.Debt
-		TotalDebt int
+		CreditorName string
+		Date         datatypes.Date
+		Amount       int
+		Detail       string
+	}
+
+	type Result2 struct {
+		Total int
 	}
 
 	var debts []model.Debt
 	var debtByCreditor *gorm.DB
 	var debtByCreditor2 *gorm.DB
 	var resultErr error
-	var result Result
+	var result []Result
+	var result2 []Result2
 
 	creditorNameDesc := CreditorNameAsc(c)
 
 	for _, value := range creditorNameDesc {
-		debtByCreditor = config.DB.Model(&debts).Where("creditor_name = ? AND debtor_id = ?", value, claims.Id).Find(&result.Debt)
-		debtByCreditor2 = config.DB.Model(&debts).Select("sum(amount) AS total_debt").Where("creditor_name = ? AND debtor_id = ?", value, claims.Id).Find(&result.TotalDebt)
+		debtByCreditor = config.DB.Model(&debts).Select("creditor_name AS creditor_name, date AS date, amount AS amount, detail AS detail").Where("creditor_name = ? AND debtor_id = ?", value, claims.Id).Find(&result)
+		debtByCreditor2 = config.DB.Model(&debts).Select("sum(amount) AS total").Where("creditor_name = ? AND debtor_id = ?", value, claims.Id).Find(&result2)
 
 		if err := debtByCreditor.Error; err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -212,7 +219,8 @@ func GetAllDebtByCreditorController(c echo.Context) error {
 		}
 
 		resultErr = c.JSON(http.StatusOK, map[string]interface{}{
-			value: result,
+			value:        result,
+			"total debt": result2,
 		})
 	}
 
