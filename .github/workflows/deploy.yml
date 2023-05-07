@@ -23,5 +23,4 @@ jobs:
           export PATH=$PATH:/usr/local/go/bin
           cd mini-project
           git pull
-          go build .
           sudo systemctl restart go-application.service
