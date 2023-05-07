@@ -22,7 +22,6 @@ func CreateDebtorController(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success create new user",
-		"debtor":  debtor,
 	})
 }
 
