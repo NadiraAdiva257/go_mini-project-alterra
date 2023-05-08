@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+
 	"mini-project/model"
 
 	"gorm.io/driver/mysql"
