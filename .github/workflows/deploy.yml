@@ -17,7 +17,7 @@ jobs:
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
-        key: go-app-mini-project.pem
+        key: ${{ secrets.PRIVATE_KEY }}
         port: 22
         script: |
           export PATH=$PATH:/usr/local/go/bin
