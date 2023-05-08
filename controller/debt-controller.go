@@ -53,7 +53,7 @@ func CreateDebtController(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success create new debt",
+		"message": "success buat new debt",
 	})
 }
 
