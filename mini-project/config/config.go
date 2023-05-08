@@ -27,11 +27,11 @@ type Config struct {
 
 func InitDB() {
 	config := Config{
-		DB_Username: "admin",
-		DB_Password: "miniproject",
+		DB_Username: "root",
+		DB_Password: "",
 		DB_Port:     "3306",
-		DB_Host:     "database-mini-project.cfhwnsmwbh2n.ap-southeast-2.rds.amazonaws.com",
-		DB_Name:     "mini_project",
+		DB_Host:     "localhost",
+		DB_Name:     "mini-project",
 	}
 
 	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
@@ -44,7 +44,6 @@ func InitDB() {
 
 	var err error
 	DB, err = gorm.Open(mysql.Open(connectionString), &gorm.Config{})
-	// DB, err = gorm.Open(mysql.Open("root:@tcp(host.docker.internal)/mini-project?charset=utf8&parseTime=True&loc=Local"), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
