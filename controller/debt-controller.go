@@ -186,10 +186,9 @@ func GetAllDebtByCreditorController(c echo.Context) error {
 	claims := user.Claims.(*JwtCustomClaims)
 
 	type Result struct {
-		CreditorName string
-		Date         datatypes.Date
-		Amount       int
-		Detail       string
+		Date   datatypes.Date
+		Amount int
+		Detail string
 	}
 
 	type Result2 struct {
