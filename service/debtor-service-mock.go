@@ -20,5 +20,33 @@ func (d *DebtorRepositoryMock) CreateDebtorController(debtor *model.Debtor) erro
 }
 
 func (drm *DebtorRepositoryMock) UpdateDebtorController(debtorUpdate *model.Debtor, id int) error {
-	return nil
+	debtor := []model.Debtor{
+		{
+			ID:       1,
+			Name:     "nadira",
+			Email:    "nadira123@gmail.com",
+			Password: "nadira123",
+		},
+		{
+			ID:       2,
+			Name:     "adiva",
+			Email:    "adiva123@gmail.com",
+			Password: "adiva123",
+		},
+	}
+
+	var result error
+
+	for _, val := range debtor {
+		if val.ID == id {
+			result = nil
+			break
+		}
+	}
+
+	if result == nil {
+		return result
+	} else {
+		return errors.New("error")
+	}
 }
