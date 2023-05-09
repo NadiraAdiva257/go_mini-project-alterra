@@ -125,6 +125,12 @@ type Result1 struct {
 	Detail       string
 }
 
+type Result2 struct {
+	Date   datatypes.Date
+	Amount int
+	Detail string
+}
+
 type ResultTotal struct {
 	Total int
 }
@@ -185,28 +191,18 @@ func GetAllDebtByCreditorController(c echo.Context) error {
 	user := c.Get("user").(*jwt.Token)
 	claims := user.Claims.(*JwtCustomClaims)
 
-	type Result struct {
-		Date   datatypes.Date
-		Amount int
-		Detail string
-	}
-
-	type Result2 struct {
-		Total int
-	}
-
 	var debts []model.Debt
 	var debtByCreditor *gorm.DB
 	var debtByCreditor2 *gorm.DB
 	var resultErr error
-	var result []Result
 	var result2 []Result2
+	var resultTotal []ResultTotal
 
 	creditorNameDesc := CreditorNameAsc(c)
 
 	for _, value := range creditorNameDesc {
-		debtByCreditor = config.DB.Model(&debts).Where("creditor_name = ? AND debtor_id = ?", value, claims.Id).Find(&result)
-		debtByCreditor2 = config.DB.Model(&debts).Select("sum(amount) AS total").Where("creditor_name = ? AND debtor_id = ?", value, claims.Id).Find(&result2)
+		debtByCreditor = config.DB.Model(&debts).Where("creditor_name = ? AND debtor_id = ?", value, claims.Id).Find(&result2)
+		debtByCreditor2 = config.DB.Model(&debts).Select("sum(amount) AS total").Where("creditor_name = ? AND debtor_id = ?", value, claims.Id).Find(&resultTotal)
 
 		if err := debtByCreditor.Error; err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -217,8 +213,8 @@ func GetAllDebtByCreditorController(c echo.Context) error {
 		}
 
 		resultErr = c.JSON(http.StatusOK, map[string]interface{}{
-			value:        result,
-			"total debt": result2,
+			value:        result2,
+			"total debt": resultTotal,
 		})
 	}
 
