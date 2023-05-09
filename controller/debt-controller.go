@@ -297,26 +297,16 @@ func GetAllDebtByTheHighest(c echo.Context) error {
 	user := c.Get("user").(*jwt.Token)
 	claims := user.Claims.(*JwtCustomClaims)
 
-	type Result struct {
-		Total int
-	}
-
-	type Result2 struct {
-		Date   datatypes.Date
-		Amount int
-		Detail string
-	}
-
 	var debts []model.Debt
 	var debtByHighest *gorm.DB
 	var resultErr error
-	var result Result
+	var resultTotal ResultTotal
 	var result2 []Result2
 
 	creditorNameHighest, creditorTotalHighest := DebtHighest(c)
 
 	for i, value := range creditorNameHighest {
-		result.Total = creditorTotalHighest[i]
+		resultTotal.Total = creditorTotalHighest[i]
 		debtByHighest = config.DB.Model(&debts).Where("creditor_name = ? AND debtor_id = ?", value, claims.Id).Find(&result2)
 
 		if err := debtByHighest.Error; err != nil {
@@ -324,7 +314,7 @@ func GetAllDebtByTheHighest(c echo.Context) error {
 		}
 
 		resultErr = c.JSON(http.StatusOK, map[string]interface{}{
-			"total debt": result,
+			"total debt": resultTotal,
 			value:        result2,
 		})
 	}
