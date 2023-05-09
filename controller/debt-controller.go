@@ -349,26 +349,16 @@ func GetAllDebtByTheLongest(c echo.Context) error {
 	user := c.Get("user").(*jwt.Token)
 	claims := user.Claims.(*JwtCustomClaims)
 
-	type Result struct {
-		Total int
-	}
-
-	type Result2 struct {
-		Date   datatypes.Date
-		Amount int
-		Detail string
-	}
-
 	var debts []model.Debt
 	var debtByLongest *gorm.DB
 	var resultErr error
-	var result Result
+	var resultTotal ResultTotal
 	var result2 []Result2
 
 	creditorNameLongest, creditorTotalLongest := DebtLongest(c)
 
 	for i, value := range creditorNameLongest {
-		result.Total = creditorTotalLongest[i]
+		resultTotal.Total = creditorTotalLongest[i]
 		debtByLongest = config.DB.Order("date asc").Model(&debts).Where("creditor_name = ? AND debtor_id = ?", value, claims.Id).Find(&result2)
 
 		if err := debtByLongest.Error; err != nil {
@@ -376,7 +366,7 @@ func GetAllDebtByTheLongest(c echo.Context) error {
 		}
 
 		resultErr = c.JSON(http.StatusOK, map[string]interface{}{
-			"total day": result,
+			"total day": resultTotal,
 			value:       result2,
 		})
 	}
