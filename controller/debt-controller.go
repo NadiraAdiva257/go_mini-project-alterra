@@ -326,10 +326,9 @@ func GetAllDebtByTheHighest(c echo.Context) error {
 	}
 
 	type Result2 struct {
-		CreditorName string
-		Date         datatypes.Date
-		Amount       int
-		Detail       string
+		Date   datatypes.Date
+		Amount int
+		Detail string
 	}
 
 	var debts []model.Debt
@@ -350,7 +349,7 @@ func GetAllDebtByTheHighest(c echo.Context) error {
 
 		resultErr = c.JSON(http.StatusOK, map[string]interface{}{
 			"total debt": result,
-			"debts":      result2,
+			value:        result2,
 		})
 	}
 
