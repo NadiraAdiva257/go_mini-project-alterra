@@ -393,10 +393,9 @@ func GetAllDebtByTheLongest(c echo.Context) error {
 	}
 
 	type Result2 struct {
-		CreditorName string
-		Date         datatypes.Date
-		Amount       int
-		Detail       string
+		Date   datatypes.Date
+		Amount int
+		Detail string
 	}
 
 	var debts []model.Debt
@@ -408,7 +407,6 @@ func GetAllDebtByTheLongest(c echo.Context) error {
 	creditorNameLongest, creditorTotalLongest := DebtLongest(c)
 
 	for i, value := range creditorNameLongest {
-		// result.CreditorName = value
 		result.Total = creditorTotalLongest[i]
 		debtByLongest = config.DB.Order("date asc").Model(&debts).Where("creditor_name = ? AND debtor_id = ?", value, claims.Id).Find(&result2)
 
@@ -418,7 +416,7 @@ func GetAllDebtByTheLongest(c echo.Context) error {
 
 		resultErr = c.JSON(http.StatusOK, map[string]interface{}{
 			"total day": result,
-			"debts":     result2,
+			value:       result2,
 		})
 	}
 
