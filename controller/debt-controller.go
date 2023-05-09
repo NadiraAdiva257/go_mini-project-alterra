@@ -119,27 +119,27 @@ func DeleteDebtController(c echo.Context) error {
 	})
 }
 
+type Result1 struct {
+	CreditorName string
+	Amount       int
+	Detail       string
+}
+
+type ResultTotal struct {
+	Total int
+}
+
 // lihat semua debts berdasarkan waktu
 func GetAllDebtByTimeController(c echo.Context) error {
 	user := c.Get("user").(*jwt.Token)
 	claims := user.Claims.(*JwtCustomClaims)
 
-	type Result struct {
-		CreditorName string
-		Amount       int
-		Detail       string
-	}
-
-	type Result2 struct {
-		Total int
-	}
-
 	var debts []model.Debt
 	var debtByTime *gorm.DB
 	var debtByTime2 *gorm.DB
 	var resultErr error
-	var result []Result
-	var result2 []Result2
+	var result []Result1
+	var result2 []ResultTotal
 
 	timeDesc := TimeDesc(c)
 
