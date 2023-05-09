@@ -126,7 +126,6 @@ func GetAllDebtByTimeController(c echo.Context) error {
 
 	type Result struct {
 		CreditorName string
-		Date         datatypes.Date
 		Amount       int
 		Detail       string
 	}
