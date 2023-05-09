@@ -279,23 +279,13 @@ func GetDebtByCreditorController(c echo.Context) error {
 	user := c.Get("user").(*jwt.Token)
 	claims := user.Claims.(*JwtCustomClaims)
 
-	type Result struct {
-		Total int
-	}
-
-	type Result2 struct {
-		Date   datatypes.Date
-		Amount int
-		Detail string
-	}
-
 	var debts []model.Debt
-	var result []Result
+	var resultTotal []ResultTotal
 	var result2 []Result2
 
 	creditor := c.QueryParam("creditor_name")
 
-	debtByCreditor := config.DB.Model(&debts).Select("sum(amount) AS total").Where("creditor_name = ? AND debtor_id = ?", creditor, claims.Id).Find(&result)
+	debtByCreditor := config.DB.Model(&debts).Select("sum(amount) AS total").Where("creditor_name = ? AND debtor_id = ?", creditor, claims.Id).Find(&resultTotal)
 	debtByCreditor2 := config.DB.Model(&debts).Where("creditor_name = ? AND debtor_id = ?", creditor, claims.Id).Find(&result2)
 
 	if err := debtByCreditor.Error; err != nil {
@@ -307,7 +297,7 @@ func GetDebtByCreditorController(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"total debt": result,
+		"total debt": resultTotal,
 		creditor:     result2,
 	})
 }
