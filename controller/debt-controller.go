@@ -138,14 +138,14 @@ func GetAllDebtByTimeController(c echo.Context) error {
 	var debtByTime *gorm.DB
 	var debtByTime2 *gorm.DB
 	var resultErr error
-	var result []Result1
-	var result2 []ResultTotal
+	var result1 []Result1
+	var resultTotal []ResultTotal
 
 	timeDesc := TimeDesc(c)
 
 	for _, value := range timeDesc {
-		debtByTime = config.DB.Model(&debts).Where("date = ? AND debtor_id = ?", value, claims.Id).Find(&result)
-		debtByTime2 = config.DB.Model(&debts).Select("sum(amount) AS total").Where("date = ? AND debtor_id = ?", value, claims.Id).Find(&result2)
+		debtByTime = config.DB.Model(&debts).Where("date = ? AND debtor_id = ?", value, claims.Id).Find(&result1)
+		debtByTime2 = config.DB.Model(&debts).Select("sum(amount) AS total").Where("date = ? AND debtor_id = ?", value, claims.Id).Find(&resultTotal)
 
 		if err := debtByTime.Error; err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -156,8 +156,8 @@ func GetAllDebtByTimeController(c echo.Context) error {
 		}
 
 		resultErr = c.JSON(http.StatusOK, map[string]interface{}{
-			value:        result,
-			"total debt": result2,
+			value:        result1,
+			"total debt": resultTotal,
 		})
 	}
 
