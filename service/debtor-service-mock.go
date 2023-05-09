@@ -20,10 +20,5 @@ func (d *DebtorRepositoryMock) CreateDebtorController(debtor *model.Debtor) erro
 }
 
 func (drm *DebtorRepositoryMock) UpdateDebtorController(debtorUpdate *model.Debtor, id int) error {
-	arguments := drm.Mock.Called(debtorUpdate, id)
-	if arguments.Get(0) == nil {
-		return errors.New("error")
-	} else {
-		return nil
-	}
+	return nil
 }
