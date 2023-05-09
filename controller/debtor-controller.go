@@ -3,6 +3,7 @@ package controller
 import (
 	"mini-project/config"
 	"mini-project/model"
+	"mini-project/service"
 	"mini-project/utils"
 	"net/http"
 
@@ -16,8 +17,10 @@ func CreateDebtorController(c echo.Context) error {
 	debtor := model.Debtor{}
 	c.Bind(&debtor)
 
-	if err := config.DB.Save(&debtor).Error; err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	if err := service.GetDebtorRepository().CreateDebtorController(&debtor); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message": err.Error(),
+		})
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
