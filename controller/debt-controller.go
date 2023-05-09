@@ -119,34 +119,39 @@ func DeleteDebtController(c echo.Context) error {
 	})
 }
 
+type Result1 struct {
+	CreditorName string
+	Amount       int
+	Detail       string
+}
+
+type Result2 struct {
+	Date   datatypes.Date
+	Amount int
+	Detail string
+}
+
+type ResultTotal struct {
+	Total int
+}
+
 // lihat semua debts berdasarkan waktu
 func GetAllDebtByTimeController(c echo.Context) error {
 	user := c.Get("user").(*jwt.Token)
 	claims := user.Claims.(*JwtCustomClaims)
 
-	type Result struct {
-		CreditorName string
-		Date         datatypes.Date
-		Amount       int
-		Detail       string
-	}
-
-	type Result2 struct {
-		Total int
-	}
-
 	var debts []model.Debt
 	var debtByTime *gorm.DB
 	var debtByTime2 *gorm.DB
 	var resultErr error
-	var result []Result
-	var result2 []Result2
+	var result1 []Result1
+	var resultTotal []ResultTotal
 
 	timeDesc := TimeDesc(c)
 
 	for _, value := range timeDesc {
-		debtByTime = config.DB.Model(&debts).Where("date = ? AND debtor_id = ?", value, claims.Id).Find(&result)
-		debtByTime2 = config.DB.Model(&debts).Select("sum(amount) AS total").Where("date = ? AND debtor_id = ?", value, claims.Id).Find(&result2)
+		debtByTime = config.DB.Model(&debts).Where("date = ? AND debtor_id = ?", value, claims.Id).Find(&result1)
+		debtByTime2 = config.DB.Model(&debts).Select("sum(amount) AS total").Where("date = ? AND debtor_id = ?", value, claims.Id).Find(&resultTotal)
 
 		if err := debtByTime.Error; err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -157,8 +162,8 @@ func GetAllDebtByTimeController(c echo.Context) error {
 		}
 
 		resultErr = c.JSON(http.StatusOK, map[string]interface{}{
-			value:        result,
-			"total debt": result2,
+			value:        result1,
+			"total debt": resultTotal,
 		})
 	}
 
@@ -186,29 +191,18 @@ func GetAllDebtByCreditorController(c echo.Context) error {
 	user := c.Get("user").(*jwt.Token)
 	claims := user.Claims.(*JwtCustomClaims)
 
-	type Result struct {
-		CreditorName string
-		Date         datatypes.Date
-		Amount       int
-		Detail       string
-	}
-
-	type Result2 struct {
-		Total int
-	}
-
 	var debts []model.Debt
 	var debtByCreditor *gorm.DB
 	var debtByCreditor2 *gorm.DB
 	var resultErr error
-	var result []Result
 	var result2 []Result2
+	var resultTotal []ResultTotal
 
 	creditorNameDesc := CreditorNameAsc(c)
 
 	for _, value := range creditorNameDesc {
-		debtByCreditor = config.DB.Model(&debts).Where("creditor_name = ? AND debtor_id = ?", value, claims.Id).Find(&result)
-		debtByCreditor2 = config.DB.Model(&debts).Select("sum(amount) AS total").Where("creditor_name = ? AND debtor_id = ?", value, claims.Id).Find(&result2)
+		debtByCreditor = config.DB.Model(&debts).Where("creditor_name = ? AND debtor_id = ?", value, claims.Id).Find(&result2)
+		debtByCreditor2 = config.DB.Model(&debts).Select("sum(amount) AS total").Where("creditor_name = ? AND debtor_id = ?", value, claims.Id).Find(&resultTotal)
 
 		if err := debtByCreditor.Error; err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -219,8 +213,8 @@ func GetAllDebtByCreditorController(c echo.Context) error {
 		}
 
 		resultErr = c.JSON(http.StatusOK, map[string]interface{}{
-			value:        result,
-			"total debt": result2,
+			value:        result2,
+			"total debt": resultTotal,
 		})
 	}
 
@@ -247,25 +241,14 @@ func GetDebtByTimeController(c echo.Context) error {
 	user := c.Get("user").(*jwt.Token)
 	claims := user.Claims.(*JwtCustomClaims)
 
-	type Result struct {
-		Total int
-	}
-
-	type Result2 struct {
-		CreditorName string
-		Date         datatypes.Date
-		Amount       int
-		Detail       string
-	}
-
 	var debts []model.Debt
-	var result []Result
-	var result2 []Result2
+	var resultTotal []ResultTotal
+	var result1 []Result1
 
 	date := c.QueryParam("date")
 
-	debtByTime := config.DB.Model(&debts).Select("sum(amount) AS total").Where("date = ? AND debtor_id = ?", date, claims.Id).Find(&result)
-	debtByTime2 := config.DB.Model(&debts).Where("date = ? AND debtor_id = ?", date, claims.Id).Find(&result2)
+	debtByTime := config.DB.Model(&debts).Select("sum(amount) AS total").Where("date = ? AND debtor_id = ?", date, claims.Id).Find(&resultTotal)
+	debtByTime2 := config.DB.Model(&debts).Where("date = ? AND debtor_id = ?", date, claims.Id).Find(&result1)
 
 	if err := debtByTime.Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -276,8 +259,8 @@ func GetDebtByTimeController(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"total debt": result,
-		date:         result2,
+		"total debt": resultTotal,
+		date:         result1,
 	})
 }
 
@@ -286,24 +269,13 @@ func GetDebtByCreditorController(c echo.Context) error {
 	user := c.Get("user").(*jwt.Token)
 	claims := user.Claims.(*JwtCustomClaims)
 
-	type Result struct {
-		Total int
-	}
-
-	type Result2 struct {
-		CreditorName string
-		Date         datatypes.Date
-		Amount       int
-		Detail       string
-	}
-
 	var debts []model.Debt
-	var result []Result
+	var resultTotal []ResultTotal
 	var result2 []Result2
 
 	creditor := c.QueryParam("creditor_name")
 
-	debtByCreditor := config.DB.Model(&debts).Select("sum(amount) AS total").Where("creditor_name = ? AND debtor_id = ?", creditor, claims.Id).Find(&result)
+	debtByCreditor := config.DB.Model(&debts).Select("sum(amount) AS total").Where("creditor_name = ? AND debtor_id = ?", creditor, claims.Id).Find(&resultTotal)
 	debtByCreditor2 := config.DB.Model(&debts).Where("creditor_name = ? AND debtor_id = ?", creditor, claims.Id).Find(&result2)
 
 	if err := debtByCreditor.Error; err != nil {
@@ -315,7 +287,7 @@ func GetDebtByCreditorController(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"total debt": result,
+		"total debt": resultTotal,
 		creditor:     result2,
 	})
 }
@@ -325,27 +297,16 @@ func GetAllDebtByTheHighest(c echo.Context) error {
 	user := c.Get("user").(*jwt.Token)
 	claims := user.Claims.(*JwtCustomClaims)
 
-	type Result struct {
-		Total int
-	}
-
-	type Result2 struct {
-		CreditorName string
-		Date         datatypes.Date
-		Amount       int
-		Detail       string
-	}
-
 	var debts []model.Debt
 	var debtByHighest *gorm.DB
 	var resultErr error
-	var result Result
+	var resultTotal ResultTotal
 	var result2 []Result2
 
 	creditorNameHighest, creditorTotalHighest := DebtHighest(c)
 
 	for i, value := range creditorNameHighest {
-		result.Total = creditorTotalHighest[i]
+		resultTotal.Total = creditorTotalHighest[i]
 		debtByHighest = config.DB.Model(&debts).Where("creditor_name = ? AND debtor_id = ?", value, claims.Id).Find(&result2)
 
 		if err := debtByHighest.Error; err != nil {
@@ -353,8 +314,8 @@ func GetAllDebtByTheHighest(c echo.Context) error {
 		}
 
 		resultErr = c.JSON(http.StatusOK, map[string]interface{}{
-			"total debt": result,
-			"debts":      result2,
+			"total debt": resultTotal,
+			value:        result2,
 		})
 	}
 
@@ -388,28 +349,16 @@ func GetAllDebtByTheLongest(c echo.Context) error {
 	user := c.Get("user").(*jwt.Token)
 	claims := user.Claims.(*JwtCustomClaims)
 
-	type Result struct {
-		Total int
-	}
-
-	type Result2 struct {
-		CreditorName string
-		Date         datatypes.Date
-		Amount       int
-		Detail       string
-	}
-
 	var debts []model.Debt
 	var debtByLongest *gorm.DB
 	var resultErr error
-	var result Result
+	var resultTotal ResultTotal
 	var result2 []Result2
 
 	creditorNameLongest, creditorTotalLongest := DebtLongest(c)
 
 	for i, value := range creditorNameLongest {
-		// result.CreditorName = value
-		result.Total = creditorTotalLongest[i]
+		resultTotal.Total = creditorTotalLongest[i]
 		debtByLongest = config.DB.Order("date asc").Model(&debts).Where("creditor_name = ? AND debtor_id = ?", value, claims.Id).Find(&result2)
 
 		if err := debtByLongest.Error; err != nil {
@@ -417,8 +366,8 @@ func GetAllDebtByTheLongest(c echo.Context) error {
 		}
 
 		resultErr = c.JSON(http.StatusOK, map[string]interface{}{
-			"total day": result,
-			"debts":     result2,
+			"total day": resultTotal,
+			value:       result2,
 		})
 	}
 
