@@ -65,7 +65,7 @@ func UpdateDebtorController(c echo.Context) error {
 	user := c.Get("user").(*jwt.Token)
 	claims := user.Claims.(*JwtCustomClaims)
 
-	var debtors []model.Debtor
+	// var debtors []model.Debtor
 
 	name := c.FormValue("name")
 	email := c.FormValue("email")
@@ -76,11 +76,23 @@ func UpdateDebtorController(c echo.Context) error {
 		return err
 	}
 
-	debtorById := config.DB.Model(&debtors).Where("id = ?", claims.Id).Updates(model.Debtor{Name: name, Email: email, Password: hashPassword})
-
-	if err := debtorById.Error; err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	debtor := model.Debtor{
+		Name:     name,
+		Email:    email,
+		Password: hashPassword,
 	}
+
+	if err := service.GetDebtorRepository().UpdateDebtorController(&debtor, claims.Id); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message": err.Error(),
+		})
+	}
+
+	// debtorById := config.DB.Model(&debtors).Where("id = ?", claims.Id).Updates(model.Debtor{Name: name, Email: email, Password: hashPassword})
+
+	// if err := debtorById.Error; err != nil {
+	// 	return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	// }
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "succes update debtor by id",
