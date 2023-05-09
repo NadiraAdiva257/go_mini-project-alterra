@@ -288,10 +288,9 @@ func GetDebtByCreditorController(c echo.Context) error {
 	}
 
 	type Result2 struct {
-		CreditorName string
-		Date         datatypes.Date
-		Amount       int
-		Detail       string
+		Date   datatypes.Date
+		Amount int
+		Detail string
 	}
 
 	var debts []model.Debt
