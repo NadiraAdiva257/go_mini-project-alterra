@@ -2,6 +2,7 @@ package controller
 
 import (
 	"mini-project/config"
+	"mini-project/middleware"
 	"mini-project/model"
 	"net/http"
 	"strconv"
@@ -13,17 +14,10 @@ import (
 	"gorm.io/gorm"
 )
 
-type JwtCustomClaims struct {
-	Id    int    `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
-	jwt.RegisteredClaims
-}
-
 // buat hutang
 func CreateDebtController(c echo.Context) error {
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
+	claims := user.Claims.(*middleware.JwtCustomClaims)
 
 	creditor_name := c.FormValue("creditor_name")
 
@@ -60,7 +54,7 @@ func CreateDebtController(c echo.Context) error {
 // edit hutang
 func UpdateDebtController(c echo.Context) error {
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
+	claims := user.Claims.(*middleware.JwtCustomClaims)
 
 	var debts []model.Debt
 
@@ -99,7 +93,7 @@ func UpdateDebtController(c echo.Context) error {
 // hapus hutang
 func DeleteDebtController(c echo.Context) error {
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
+	claims := user.Claims.(*middleware.JwtCustomClaims)
 
 	var debts []model.Debt
 
@@ -138,7 +132,7 @@ type ResultTotal struct {
 // lihat keseluruhan daftar hutang berdasarkan pengelompokan waktu
 func GetAllDebtByTimeController(c echo.Context) error {
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
+	claims := user.Claims.(*middleware.JwtCustomClaims)
 
 	var debts []model.Debt
 	var debtByTime *gorm.DB
@@ -172,7 +166,7 @@ func GetAllDebtByTimeController(c echo.Context) error {
 
 func TimeDesc(c echo.Context) []string {
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
+	claims := user.Claims.(*middleware.JwtCustomClaims)
 
 	var debts []model.Debt
 	var result []string
@@ -189,7 +183,7 @@ func TimeDesc(c echo.Context) []string {
 // melihat keseluruhan daftar hutang berdasarkan pengelompokan nama kreditur
 func GetAllDebtByCreditorController(c echo.Context) error {
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
+	claims := user.Claims.(*middleware.JwtCustomClaims)
 
 	var debts []model.Debt
 	var debtByCreditor *gorm.DB
@@ -223,7 +217,7 @@ func GetAllDebtByCreditorController(c echo.Context) error {
 
 func CreditorNameAsc(c echo.Context) []string {
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
+	claims := user.Claims.(*middleware.JwtCustomClaims)
 
 	var debts []model.Debt
 	var result []string
@@ -240,7 +234,7 @@ func CreditorNameAsc(c echo.Context) []string {
 // cari daftar hutang berdasarkan waktu
 func GetDebtByTimeController(c echo.Context) error {
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
+	claims := user.Claims.(*middleware.JwtCustomClaims)
 
 	var debts []model.Debt
 	var resultTotal []ResultTotal
@@ -268,7 +262,7 @@ func GetDebtByTimeController(c echo.Context) error {
 // cari daftar hutang berdasarkan nama kreditur
 func GetDebtByCreditorController(c echo.Context) error {
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
+	claims := user.Claims.(*middleware.JwtCustomClaims)
 
 	var debts []model.Debt
 	var resultTotal []ResultTotal
@@ -296,7 +290,7 @@ func GetDebtByCreditorController(c echo.Context) error {
 // lihat daftar hutang yang diurutkan dari hutang tertinggi berdasarkan pengelompokan nama kreditur
 func GetAllDebtByTheHighest(c echo.Context) error {
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
+	claims := user.Claims.(*middleware.JwtCustomClaims)
 
 	var debts []model.Debt
 	var debtByHighest *gorm.DB
@@ -325,7 +319,7 @@ func GetAllDebtByTheHighest(c echo.Context) error {
 
 func DebtHighest(c echo.Context) ([]string, []int) {
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
+	claims := user.Claims.(*middleware.JwtCustomClaims)
 
 	var debts []model.Debt
 	var resultName []string
@@ -348,7 +342,7 @@ func DebtHighest(c echo.Context) ([]string, []int) {
 // lihat daftar hutang yang diurutkan dari hutang terlama berdasarkan pengelompokan nama kreditur)
 func GetAllDebtByTheLongest(c echo.Context) error {
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
+	claims := user.Claims.(*middleware.JwtCustomClaims)
 
 	var debts []model.Debt
 	var debtByLongest *gorm.DB
@@ -377,7 +371,7 @@ func GetAllDebtByTheLongest(c echo.Context) error {
 
 func DebtLongest(c echo.Context) ([]string, []int) {
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
+	claims := user.Claims.(*middleware.JwtCustomClaims)
 
 	var debts []model.Debt
 	var resultName []string

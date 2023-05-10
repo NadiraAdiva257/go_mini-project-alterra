@@ -6,7 +6,8 @@ import (
 )
 
 type IDebtorService interface {
-	CreateDebtorController(*model.Debtor) error
+	CreateDebtorController(debtor *model.Debtor) error
+	UpdateDebtorController(debtorUpdate *model.Debtor, id int) error
 }
 
 type DebtorRepository struct {
@@ -32,6 +33,16 @@ func SetDebtorRepository(dr IDebtorService) {
 
 func (u *DebtorRepository) CreateDebtorController(debtor *model.Debtor) error {
 	if err := config.DB.Save(&debtor); err != nil {
+		return err.Error
+	}
+
+	return nil
+}
+
+func (u *DebtorRepository) UpdateDebtorController(debtorUpdate *model.Debtor, id int) error {
+	var debtor model.Debtor
+
+	if err := config.DB.Model(&debtor).Where("id = ?", id).Updates(debtorUpdate); err != nil {
 		return err.Error
 	}
 

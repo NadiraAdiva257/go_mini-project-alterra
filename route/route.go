@@ -2,6 +2,7 @@ package route
 
 import (
 	"mini-project/controller"
+	"mini-project/middleware"
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/labstack/echo/v4"
@@ -14,7 +15,7 @@ func New() *echo.Echo {
 
 	config := echojwt.Config{
 		NewClaimsFunc: func(c echo.Context) jwt.Claims {
-			return new(controller.JwtCustomClaims)
+			return new(middleware.JwtCustomClaims)
 		},
 		SigningKey: []byte("secret"),
 	}
