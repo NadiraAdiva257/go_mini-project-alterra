@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -51,7 +52,9 @@ func TestUpdateDebtorController(t *testing.T) {
 	service.SetDebtorRepository(debtorRepository)
 
 	dataDebtor := model.Debtor{
-		Name: "nadira",
+		Name:     "nadira",
+		Email:    "nadira123@gmail.com",
+		Password: "nadira123",
 	}
 
 	debtorRepository.Mock.On("UpdateDebtorController", &dataDebtor, 1).Return(nil)
@@ -63,6 +66,16 @@ func TestUpdateDebtorController(t *testing.T) {
 	req.Header.Set("content-type", "application/json")
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
+
+	user := JwtCustomClaims{}
+	c.Set("user", jwt.Token{
+		Claims: jwt.MapClaims{
+			"user": user,
+		},
+	})
+
+	// token := jwt.NewWithClaims(jwt.SigningMethodHS256, user)
+	// c.Set("jwt", token)
 
 	UpdateDebtorController(c)
 
