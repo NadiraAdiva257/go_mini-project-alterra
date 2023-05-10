@@ -4,6 +4,7 @@ import (
 	"mini-project/config"
 	"mini-project/middleware"
 	"mini-project/model"
+	"mini-project/service"
 	"net/http"
 	"strconv"
 	"time"
@@ -92,22 +93,18 @@ func UpdateDebtController(c echo.Context) error {
 
 // hapus hutang
 func DeleteDebtController(c echo.Context) error {
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*middleware.JwtCustomClaims)
-
-	var debts []model.Debt
+	debtor_id := middleware.GetClaims(c).Id
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		return err
 	}
 
-	debtById := config.DB.Where("id = ? AND debtor_id = ?", id, claims.Id).Delete(&debts)
-
-	if err := debtById.Error; err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	if err := service.GetDebtRepository().DeleteDebtController(id, debtor_id); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message": err.Error(),
+		})
 	}
-
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success delete debt by id",
 	})
