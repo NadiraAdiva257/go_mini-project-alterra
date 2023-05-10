@@ -3,6 +3,7 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
+	"mini-project/middleware"
 	"mini-project/model"
 	"mini-project/service"
 	"net/http"
@@ -67,15 +68,10 @@ func TestUpdateDebtorController(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	user := JwtCustomClaims{}
-	c.Set("user", jwt.Token{
-		Claims: jwt.MapClaims{
-			"user": user,
-		},
+	user := &middleware.JwtCustomClaims{}
+	c.Set("user", &jwt.Token{
+		Claims: user,
 	})
-
-	// token := jwt.NewWithClaims(jwt.SigningMethodHS256, user)
-	// c.Set("jwt", token)
 
 	UpdateDebtorController(c)
 
