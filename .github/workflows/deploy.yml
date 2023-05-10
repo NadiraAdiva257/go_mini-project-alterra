@@ -24,7 +24,6 @@ jobs:
           cd mini-project
           git pull
           sudo docker pull adivanadira/docker-mini-project2:latest
-          sudo docker images
-          sudo docker stop adivanadira/docker-mini-project2
-          sudo docker rm adivanadira/docker-mini-project2
-          sudo docker run -dp 8001:8000 adivanadira/docker-mini-project2
+          sudo docker stop docker-mini-project2
+          sudo docker rm docker-mini-project2
+          sudo docker run --name docker-mini-project2 -dp 8001:8000 adivanadira/docker-mini-project2
