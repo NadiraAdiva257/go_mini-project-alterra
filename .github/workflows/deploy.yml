@@ -23,4 +23,7 @@ jobs:
           export PATH=$PATH:/usr/local/go/bin
           cd mini-project
           git pull
-          sudo systemctl restart go-application.service
+          sudo docker build -t go-mini-project .
+          sudo docker stop go-mini-project
+          sudo docker rm go-mini-project
+          sudo docker run --name go-mini-project -dp 8001:8000 go-mini-project
