@@ -23,7 +23,7 @@ jobs:
           export PATH=$PATH:/usr/local/go/bin
           cd mini-project
           git pull
-          sudo docker pull adivanadira/docker-mini-project2:latest
-          sudo docker stop docker-mini-project2
-          sudo docker rm docker-mini-project2
-          sudo docker run --name docker-mini-project2 -dp 8001:8000 adivanadira/docker-mini-project2
+          sudo docker build -t go-mini-project .
+          sudo docker stop go-mini-project
+          sudo docker rm go-mini-project
+          sudo docker run --name go-mini-project -dp 8001:8000 go-mini-project
