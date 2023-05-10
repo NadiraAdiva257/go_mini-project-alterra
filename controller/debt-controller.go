@@ -22,8 +22,8 @@ type JwtCustomClaims struct {
 
 // buat debt
 func CreateDebtController(c echo.Context) error {
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
+	// user := c.Get("user").(*jwt.Token)
+	// claims := user.Claims.(*JwtCustomClaims)
 
 	creditor_name := c.FormValue("creditor_name")
 
@@ -40,12 +40,17 @@ func CreateDebtController(c echo.Context) error {
 
 	detail := c.FormValue("detail")
 
+	debtor_id, err := strconv.Atoi(c.FormValue("debtor_id"))
+	if err != nil {
+		return err
+	}
+
 	debt := model.Debt{
 		CreditorName: creditor_name,
 		Date:         datatypes.Date(date),
 		Amount:       amount,
 		Detail:       detail,
-		DebtorID:     claims.Id,
+		DebtorID:     debtor_id,
 	}
 
 	if err := config.DB.Save(&debt).Error; err != nil {
