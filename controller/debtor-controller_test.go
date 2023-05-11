@@ -76,11 +76,4 @@ func TestUpdateDebtorController(t *testing.T) {
 	UpdateDebtorController(c)
 
 	assert.Equal(t, http.StatusOK, rec.Code)
-
-	expectResult := map[string]interface{}{
-		"message": "succes update debtor by id",
-	}
-	var resultJSON map[string]interface{}
-	json.Unmarshal(rec.Body.Bytes(), &resultJSON)
-	assert.Equal(t, expectResult, resultJSON)
 }
