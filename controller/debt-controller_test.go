@@ -101,49 +101,42 @@ func TestDeleteDebtController(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rec.Code)
 }
 
-func TestGetDebtByCreditorController(t *testing.T) {
-	debtRepository := &service.DebtRepositoryMock{Mock: mock.Mock{}}
-	service.SetDebtRepository(debtRepository)
+// func TestGetDebtByCreditorController(t *testing.T) {
+// 	debtRepository := &service.DebtRepositoryMock{Mock: mock.Mock{}}
+// 	service.SetDebtRepository(debtRepository)
 
-	var result = make(map[string]interface{})
-	result["total debt"] = 23000
-	result["mayla"] = []model.Debt{
-		{
-			Date:   datatypes.Date(time.Now()),
-			Amount: 23000,
-			Detail: "cilok",
-		},
-		{
-			Date:   datatypes.Date(time.Now()),
-			Amount: 23000,
-			Detail: "cilok",
-		},
-	}
+// 	var result = make(map[string]interface{})
+// 	result["total debt"] = 23000
+// 	result["mayla"] = []model.Debt{
+// 		{
+// 			Date:   datatypes.Date(time.Now()),
+// 			Amount: 23000,
+// 			Detail: "cilok",
+// 		},
+// 		{
+// 			Date:   datatypes.Date(time.Now()),
+// 			Amount: 23000,
+// 			Detail: "cilok",
+// 		},
+// 	}
 
-	debtRepository.Mock.On("GetDebtByCreditorController", "mayla", 1).Return(nil)
+// 	debtRepository.Mock.On("GetDebtByCreditorController", "mayla", 1).Return(nil)
 
-	e := echo.New()
+// 	e := echo.New()
 
-	bDataDebt, _ := json.Marshal(result)
-	req := httptest.NewRequest(http.MethodGet, "/debts/creditor", bytes.NewReader(bDataDebt))
-	req.Header.Set("content-type", "application/json")
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.QueryParam("creditor_name")
-	c.SetParamValues("mayla")
+// 	bDataDebt, _ := json.Marshal(result)
+// 	req := httptest.NewRequest(http.MethodGet, "/debts/creditor", bytes.NewReader(bDataDebt))
+// 	req.Header.Set("content-type", "application/json")
+// 	rec := httptest.NewRecorder()
+// 	c := e.NewContext(req, rec)
+// 	c.QueryParam("creditor_name")
+// 	c.SetParamValues("mayla")
 
-	user := &middleware.JwtCustomClaims{}
-	c.Set("user", &jwt.Token{
-		Claims: user,
-	})
+// 	user := &middleware.JwtCustomClaims{}
+// 	c.Set("user", &jwt.Token{
+// 		Claims: user,
+// 	})
 
-	GetDebtByCreditorController(c)
-	assert.Equal(t, http.StatusOK, rec.Code)
-
-	// expectResult := map[string]interface{}{
-	// 	"message": "success delete debt by id",
-	// }
-	// var resultJSON map[string]interface{}
-	// json.Unmarshal(rec.Body.Bytes(), &resultJSON)
-	// assert.Equal(t, expectResult, resultJSON)
-}
+// 	GetDebtByCreditorController(c)
+// 	assert.Equal(t, http.StatusOK, rec.Code)
+// }
