@@ -18,17 +18,17 @@ import (
 	"gorm.io/datatypes"
 )
 
+var dataDebt = model.Debt{
+	CreditorName: "mayla",
+	Date:         datatypes.Date(time.Now()),
+	Amount:       23000,
+	Detail:       "ayam",
+	DebtorID:     1,
+}
+
 func TestCreateDebtController(t *testing.T) {
 	debtRepository := &service.DebtRepositoryMock{Mock: mock.Mock{}}
 	service.SetDebtRepository(debtRepository)
-
-	dataDebt := model.Debt{
-		CreditorName: "mayla",
-		Date:         datatypes.Date(time.Now()),
-		Amount:       23000,
-		Detail:       "ayam",
-		DebtorID:     1,
-	}
 
 	debtRepository.Mock.On("CreateDebtController", &dataDebt).Return(nil)
 
@@ -53,14 +53,6 @@ func TestCreateDebtController(t *testing.T) {
 func TestUpdateDebtController(t *testing.T) {
 	debtRepository := &service.DebtRepositoryMock{Mock: mock.Mock{}}
 	service.SetDebtRepository(debtRepository)
-
-	dataDebt := model.Debt{
-		CreditorName: "mayla",
-		Date:         datatypes.Date(time.Now()),
-		Amount:       23000,
-		Detail:       "ayam",
-		DebtorID:     1,
-	}
 
 	debtRepository.Mock.On("UpdateDebtController", &dataDebt, 1, 2).Return(nil)
 
