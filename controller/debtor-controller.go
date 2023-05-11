@@ -9,7 +9,6 @@ import (
 
 	"mini-project/middleware"
 
-	"github.com/golang-jwt/jwt/v4"
 	"github.com/labstack/echo/v4"
 )
 
@@ -24,7 +23,7 @@ func CreateDebtorController(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success create new user",
+		"message": "success create new debtor",
 	})
 }
 
@@ -62,11 +61,7 @@ func LoginDebtorController(c echo.Context) error {
 }
 
 func UpdateDebtorController(c echo.Context) error {
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
-
-	var debtors []model.Debtor
-
+	debtor_id := middleware.GetClaims(c).Id
 	name := c.FormValue("name")
 	email := c.FormValue("email")
 	password := c.FormValue("password")
@@ -76,13 +71,19 @@ func UpdateDebtorController(c echo.Context) error {
 		return err
 	}
 
-	debtorById := config.DB.Model(&debtors).Where("id = ?", claims.Id).Updates(model.Debtor{Name: name, Email: email, Password: hashPassword})
+	debtor := model.Debtor{
+		Name:     name,
+		Email:    email,
+		Password: hashPassword,
+	}
 
-	if err := debtorById.Error; err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	if err := service.GetDebtorRepository().UpdateDebtorController(&debtor, debtor_id); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message": err.Error(),
+		})
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "succes update debtor by id",
+		"message": "succes update debtor",
 	})
 }

@@ -8,6 +8,7 @@ import (
 
 type Debt struct {
 	gorm.Model
+	ID           int            `json:"id" form:"id"`
 	CreditorName string         `json:"creditor_name" form:"creditor_name"`
 	Date         datatypes.Date `json:"date" form:"date"`
 	Amount       int            `json:"amount" form:"amount"`

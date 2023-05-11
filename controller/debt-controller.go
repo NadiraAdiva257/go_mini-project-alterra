@@ -2,7 +2,9 @@ package controller
 
 import (
 	"mini-project/config"
+	"mini-project/middleware"
 	"mini-project/model"
+	"mini-project/service"
 	"net/http"
 	"strconv"
 	"time"
@@ -13,18 +15,8 @@ import (
 	"gorm.io/gorm"
 )
 
-type JwtCustomClaims struct {
-	Id    int    `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
-	jwt.RegisteredClaims
-}
-
 // buat hutang
 func CreateDebtController(c echo.Context) error {
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
-
 	creditor_name := c.FormValue("creditor_name")
 
 	formatDate := "2006-01-02"
@@ -40,16 +32,20 @@ func CreateDebtController(c echo.Context) error {
 
 	detail := c.FormValue("detail")
 
+	debtor_id := middleware.GetClaims(c).Id
+
 	debt := model.Debt{
 		CreditorName: creditor_name,
 		Date:         datatypes.Date(date),
 		Amount:       amount,
 		Detail:       detail,
-		DebtorID:     claims.Id,
+		DebtorID:     debtor_id,
 	}
 
-	if err := config.DB.Save(&debt).Error; err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	if err := service.GetDebtRepository().CreateDebtController(&debt); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message": err.Error(),
+		})
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
@@ -59,11 +55,6 @@ func CreateDebtController(c echo.Context) error {
 
 // edit hutang
 func UpdateDebtController(c echo.Context) error {
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
-
-	var debts []model.Debt
-
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		return err
@@ -84,11 +75,20 @@ func UpdateDebtController(c echo.Context) error {
 
 	detail := c.FormValue("detail")
 
-	debtById := config.DB.Model(&debts).Where("id = ? AND debtor_id = ?", id, claims.Id).Updates(model.Debt{
-		CreditorName: creditor_name, Date: datatypes.Date(date), Amount: amount, Detail: detail})
+	debtor_id := middleware.GetClaims(c).Id
 
-	if err := debtById.Error; err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	debt := model.Debt{
+		CreditorName: creditor_name,
+		Date:         datatypes.Date(date),
+		Amount:       amount,
+		Detail:       detail,
+		DebtorID:     debtor_id,
+	}
+
+	if err := service.GetDebtRepository().UpdateDebtController(&debt, id, debtor_id); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message": err.Error(),
+		})
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
@@ -98,20 +98,17 @@ func UpdateDebtController(c echo.Context) error {
 
 // hapus hutang
 func DeleteDebtController(c echo.Context) error {
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
-
-	var debts []model.Debt
+	debtor_id := middleware.GetClaims(c).Id
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		return err
 	}
 
-	debtById := config.DB.Where("id = ? AND debtor_id = ?", id, claims.Id).Delete(&debts)
-
-	if err := debtById.Error; err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	if err := service.GetDebtRepository().DeleteDebtController(id, debtor_id); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message": err.Error(),
+		})
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
@@ -138,7 +135,7 @@ type ResultTotal struct {
 // lihat keseluruhan daftar hutang berdasarkan pengelompokan waktu
 func GetAllDebtByTimeController(c echo.Context) error {
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
+	claims := user.Claims.(*middleware.JwtCustomClaims)
 
 	var debts []model.Debt
 	var debtByTime *gorm.DB
@@ -172,7 +169,7 @@ func GetAllDebtByTimeController(c echo.Context) error {
 
 func TimeDesc(c echo.Context) []string {
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
+	claims := user.Claims.(*middleware.JwtCustomClaims)
 
 	var debts []model.Debt
 	var result []string
@@ -189,7 +186,7 @@ func TimeDesc(c echo.Context) []string {
 // melihat keseluruhan daftar hutang berdasarkan pengelompokan nama kreditur
 func GetAllDebtByCreditorController(c echo.Context) error {
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
+	claims := user.Claims.(*middleware.JwtCustomClaims)
 
 	var debts []model.Debt
 	var debtByCreditor *gorm.DB
@@ -223,7 +220,7 @@ func GetAllDebtByCreditorController(c echo.Context) error {
 
 func CreditorNameAsc(c echo.Context) []string {
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
+	claims := user.Claims.(*middleware.JwtCustomClaims)
 
 	var debts []model.Debt
 	var result []string
@@ -240,7 +237,7 @@ func CreditorNameAsc(c echo.Context) []string {
 // cari daftar hutang berdasarkan waktu
 func GetDebtByTimeController(c echo.Context) error {
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
+	claims := user.Claims.(*middleware.JwtCustomClaims)
 
 	var debts []model.Debt
 	var resultTotal []ResultTotal
@@ -267,17 +264,27 @@ func GetDebtByTimeController(c echo.Context) error {
 
 // cari daftar hutang berdasarkan nama kreditur
 func GetDebtByCreditorController(c echo.Context) error {
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
-
 	var debts []model.Debt
 	var resultTotal []ResultTotal
 	var result2 []Result2
 
+	debtor_id := middleware.GetClaims(c).Id
 	creditor := c.QueryParam("creditor_name")
 
-	debtByCreditor := config.DB.Model(&debts).Select("sum(amount) AS total").Where("creditor_name = ? AND debtor_id = ?", creditor, claims.Id).Find(&resultTotal)
-	debtByCreditor2 := config.DB.Model(&debts).Where("creditor_name = ? AND debtor_id = ?", creditor, claims.Id).Find(&result2)
+	// result, err := service.GetDebtRepository().GetDebtByCreditorController(creditor, claims.Id)
+	// if err != nil {
+	// 	return c.JSON(http.StatusBadRequest, map[string]interface{}{
+	// 		"message": err.Error(),
+	// 	})
+	// } else {
+	// 	return c.JSON(http.StatusOK, map[string]interface{}{
+	// 		"total debt": result["total debt"],
+	// 		creditor:     result[creditor],
+	// 	})
+	// }
+
+	debtByCreditor := config.DB.Model(&debts).Select("sum(amount) AS total").Where("creditor_name = ? AND debtor_id = ?", creditor, debtor_id).Find(&resultTotal)
+	debtByCreditor2 := config.DB.Model(&debts).Where("creditor_name = ? AND debtor_id = ?", creditor, debtor_id).Find(&result2)
 
 	if err := debtByCreditor.Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -296,7 +303,7 @@ func GetDebtByCreditorController(c echo.Context) error {
 // lihat daftar hutang yang diurutkan dari hutang tertinggi berdasarkan pengelompokan nama kreditur
 func GetAllDebtByTheHighest(c echo.Context) error {
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
+	claims := user.Claims.(*middleware.JwtCustomClaims)
 
 	var debts []model.Debt
 	var debtByHighest *gorm.DB
@@ -325,7 +332,7 @@ func GetAllDebtByTheHighest(c echo.Context) error {
 
 func DebtHighest(c echo.Context) ([]string, []int) {
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
+	claims := user.Claims.(*middleware.JwtCustomClaims)
 
 	var debts []model.Debt
 	var resultName []string
@@ -348,7 +355,7 @@ func DebtHighest(c echo.Context) ([]string, []int) {
 // lihat daftar hutang yang diurutkan dari hutang terlama berdasarkan pengelompokan nama kreditur)
 func GetAllDebtByTheLongest(c echo.Context) error {
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
+	claims := user.Claims.(*middleware.JwtCustomClaims)
 
 	var debts []model.Debt
 	var debtByLongest *gorm.DB
@@ -377,7 +384,7 @@ func GetAllDebtByTheLongest(c echo.Context) error {
 
 func DebtLongest(c echo.Context) ([]string, []int) {
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
+	claims := user.Claims.(*middleware.JwtCustomClaims)
 
 	var debts []model.Debt
 	var resultName []string
