@@ -360,30 +360,26 @@ func GetAllDebtByTheLongest(c echo.Context) error {
 	var creditorTotalArray []int
 
 	var resultErr error
-	var resultTotal ResultTotal
 	var result2 []Result2
 
-	creditorName := config.DB.Order("datediff(curdate(), date) desc").Model(&debts).Select("creditor_name").Where("debtor_id = ?", debtor_id).Group("creditor_name").Find(&creditorNameArray)
+	creditorName := config.DB.Order("datediff(curdate(), min(date)) desc").Model(&debts).Select("creditor_name").Where("debtor_id = ?", debtor_id).Group("creditor_name").Find(&creditorNameArray)
 	if err := creditorName.Error; err != nil {
 		echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	subQuery := config.DB.Model(&debts).Select("min(date)").Where("debtor_id = ?", debtor_id).Group("creditor_name")
-	creditorTotal := config.DB.Order("datediff(curdate(), date) desc").Model(&debts).Select("datediff(curdate(), date)").Where("date = any (?) AND debtor_id = ?", subQuery, debtor_id).Group("creditor_name").Find(&creditorTotalArray)
+	creditorTotal := config.DB.Order("datediff(curdate(), min(date)) desc").Model(&debts).Select("datediff(curdate(), min(date))").Where("debtor_id = ?", debtor_id).Group("creditor_name").Find(&creditorTotalArray)
 	if err := creditorTotal.Error; err != nil {
 		echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	for i, value := range creditorNameArray {
-		resultTotal.Total = creditorTotalArray[i]
-
 		debtByLongest := config.DB.Order("date asc").Model(&debts).Where("creditor_name = ? AND debtor_id = ?", value, debtor_id).Find(&result2)
 		if err := debtByLongest.Error; err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
 		resultErr = c.JSON(http.StatusOK, map[string]interface{}{
-			"total day": resultTotal,
+			"total day": creditorTotalArray[i],
 			value:       result2,
 		})
 	}
