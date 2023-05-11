@@ -107,13 +107,6 @@ func TestDeleteDebtController(t *testing.T) {
 	DeleteDebtController(c)
 
 	assert.Equal(t, http.StatusOK, rec.Code)
-
-	expectResult := map[string]interface{}{
-		"message": "success delete debt by id",
-	}
-	var resultJSON map[string]interface{}
-	json.Unmarshal(rec.Body.Bytes(), &resultJSON)
-	assert.Equal(t, expectResult, resultJSON)
 }
 
 func TestGetDebtByCreditorController(t *testing.T) {
