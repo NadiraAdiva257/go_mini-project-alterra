@@ -9,10 +9,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
 	"github.com/labstack/echo/v4"
 	"gorm.io/datatypes"
-	"gorm.io/gorm"
 )
 
 // buat hutang
@@ -303,53 +301,35 @@ func GetAllDebtByTheHighest(c echo.Context) error {
 
 // lihat daftar hutang yang diurutkan dari hutang terlama berdasarkan pengelompokan nama kreditur)
 func GetAllDebtByTheLongest(c echo.Context) error {
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*middleware.JwtCustomClaims)
-
+	var debtor_id = middleware.GetClaims(c).Id
 	var debts []model.Debt
-	var debtByLongest *gorm.DB
+	var creditorNameArray []string
+	var creditorTotalArray []int
+
 	var resultErr error
-	var resultTotal ResultTotal
 	var result2 []Result2
 
-	creditorNameLongest, creditorTotalLongest := DebtLongest(c)
+	creditorName := config.DB.Order("datediff(curdate(), min(date)) desc").Model(&debts).Select("creditor_name").Where("debtor_id = ?", debtor_id).Group("creditor_name").Find(&creditorNameArray)
+	if err := creditorName.Error; err != nil {
+		echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
 
-	for i, value := range creditorNameLongest {
-		resultTotal.Total = creditorTotalLongest[i]
-		debtByLongest = config.DB.Order("date asc").Model(&debts).Where("creditor_name = ? AND debtor_id = ?", value, claims.Id).Find(&result2)
+	creditorTotal := config.DB.Order("datediff(curdate(), min(date)) desc").Model(&debts).Select("datediff(curdate(), min(date))").Where("debtor_id = ?", debtor_id).Group("creditor_name").Find(&creditorTotalArray)
+	if err := creditorTotal.Error; err != nil {
+		echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
 
+	for i, value := range creditorNameArray {
+		debtByLongest := config.DB.Order("date asc").Model(&debts).Where("creditor_name = ? AND debtor_id = ?", value, debtor_id).Find(&result2)
 		if err := debtByLongest.Error; err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
 		resultErr = c.JSON(http.StatusOK, map[string]interface{}{
-			"total day": resultTotal,
+			"total day": creditorTotalArray[i],
 			value:       result2,
 		})
 	}
 
 	return resultErr
-}
-
-func DebtLongest(c echo.Context) ([]string, []int) {
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*middleware.JwtCustomClaims)
-
-	var debts []model.Debt
-	var resultName []string
-	var resultTotal []int
-
-	subQuery := config.DB.Model(&debts).Select("min(date)").Where("debtor_id = ?", claims.Id).Group("creditor_name")
-	creditorName := config.DB.Order("datediff(curdate(), date) desc").Model(&debts).Select("creditor_name").Where("debtor_id = ?", claims.Id).Group("creditor_name").Find(&resultName)
-	creditorTotal := config.DB.Order("datediff(curdate(), date) desc").Model(&debts).Select("datediff(curdate(), date)").Where("date = any (?) AND debtor_id = ?", subQuery, claims.Id).Group("creditor_name").Find(&resultTotal)
-
-	if err := creditorName.Error; err != nil {
-		echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-
-	if err := creditorTotal.Error; err != nil {
-		echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-
-	return resultName, resultTotal
 }
