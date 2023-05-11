@@ -230,11 +230,12 @@ func GetDebtByTimeController(c echo.Context) error {
 
 // cari daftar hutang berdasarkan nama kreditur
 func GetDebtByCreditorController(c echo.Context) error {
+	var debtor_id = middleware.GetClaims(c).Id
 	var debts []model.Debt
+
 	var resultTotal []ResultTotal
 	var result2 []Result2
 
-	debtor_id := middleware.GetClaims(c).Id
 	creditor := c.QueryParam("creditor_name")
 
 	// result, err := service.GetDebtRepository().GetDebtByCreditorController(creditor, claims.Id)
@@ -250,12 +251,11 @@ func GetDebtByCreditorController(c echo.Context) error {
 	// }
 
 	debtByCreditor := config.DB.Model(&debts).Select("sum(amount) AS total").Where("creditor_name = ? AND debtor_id = ?", creditor, debtor_id).Find(&resultTotal)
-	debtByCreditor2 := config.DB.Model(&debts).Where("creditor_name = ? AND debtor_id = ?", creditor, debtor_id).Find(&result2)
-
 	if err := debtByCreditor.Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
+	debtByCreditor2 := config.DB.Model(&debts).Where("creditor_name = ? AND debtor_id = ?", creditor, debtor_id).Find(&result2)
 	if err := debtByCreditor2.Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
