@@ -204,22 +204,20 @@ func GetAllDebtByCreditorController(c echo.Context) error {
 
 // cari daftar hutang berdasarkan waktu
 func GetDebtByTimeController(c echo.Context) error {
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*middleware.JwtCustomClaims)
-
+	var debtor_id = middleware.GetClaims(c).Id
 	var debts []model.Debt
+
 	var resultTotal []ResultTotal
 	var result1 []Result1
 
 	date := c.QueryParam("date")
 
-	debtByTime := config.DB.Model(&debts).Select("sum(amount) AS total").Where("date = ? AND debtor_id = ?", date, claims.Id).Find(&resultTotal)
-	debtByTime2 := config.DB.Model(&debts).Where("date = ? AND debtor_id = ?", date, claims.Id).Find(&result1)
-
+	debtByTime := config.DB.Model(&debts).Select("sum(amount) AS total").Where("date = ? AND debtor_id = ?", date, debtor_id).Find(&resultTotal)
 	if err := debtByTime.Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
+	debtByTime2 := config.DB.Model(&debts).Where("date = ? AND debtor_id = ?", date, debtor_id).Find(&result1)
 	if err := debtByTime2.Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
