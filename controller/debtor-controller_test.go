@@ -16,15 +16,15 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+var dataDebtor = model.Debtor{
+	Name:     "nadira",
+	Email:    "nadira123@gmail.com",
+	Password: "nadira123",
+}
+
 func TestCreateDebtorController(t *testing.T) {
 	debtorRepository := &service.DebtorRepositoryMock{Mock: mock.Mock{}}
 	service.SetDebtorRepository(debtorRepository)
-
-	dataDebtor := model.Debtor{
-		Name:     "nadira",
-		Email:    "nadira123@gmail.com",
-		Password: "nadira123",
-	}
 
 	debtorRepository.Mock.On("CreateDebtorController", &dataDebtor).Return(nil)
 
@@ -51,12 +51,6 @@ func TestCreateDebtorController(t *testing.T) {
 func TestUpdateDebtorController(t *testing.T) {
 	debtorRepository := &service.DebtorRepositoryMock{Mock: mock.Mock{}}
 	service.SetDebtorRepository(debtorRepository)
-
-	dataDebtor := model.Debtor{
-		Name:     "nadira",
-		Email:    "nadira123@gmail.com",
-		Password: "nadira123",
-	}
 
 	debtorRepository.Mock.On("UpdateDebtorController", &dataDebtor, 1).Return(nil)
 
