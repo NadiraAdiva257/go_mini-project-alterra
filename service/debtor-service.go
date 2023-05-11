@@ -31,7 +31,7 @@ func SetDebtorRepository(dr IDebtorService) {
 	debtorRepository = dr
 }
 
-func (u *DebtorRepository) CreateDebtorController(debtor *model.Debtor) error {
+func (d *DebtorRepository) CreateDebtorController(debtor *model.Debtor) error {
 	if err := config.DB.Save(&debtor); err != nil {
 		return err.Error
 	}
@@ -39,7 +39,7 @@ func (u *DebtorRepository) CreateDebtorController(debtor *model.Debtor) error {
 	return nil
 }
 
-func (u *DebtorRepository) UpdateDebtorController(debtorUpdate *model.Debtor, id int) error {
+func (d *DebtorRepository) UpdateDebtorController(debtorUpdate *model.Debtor, id int) error {
 	var debtor model.Debtor
 
 	if err := config.DB.Model(&debtor).Where("id = ?", id).Updates(debtorUpdate); err != nil {

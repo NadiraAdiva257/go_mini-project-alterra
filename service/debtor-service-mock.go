@@ -11,7 +11,7 @@ type DebtorRepositoryMock struct {
 	Mock mock.Mock
 }
 
-func (d *DebtorRepositoryMock) CreateDebtorController(debtor *model.Debtor) error {
+func (drm *DebtorRepositoryMock) CreateDebtorController(debtor *model.Debtor) error {
 	if debtor == nil {
 		return errors.New("error")
 	} else {
