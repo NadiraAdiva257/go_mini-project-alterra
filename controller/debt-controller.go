@@ -55,11 +55,6 @@ func CreateDebtController(c echo.Context) error {
 
 // edit hutang
 func UpdateDebtController(c echo.Context) error {
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*middleware.JwtCustomClaims)
-
-	// var debts []model.Debt
-
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		return err
@@ -80,26 +75,21 @@ func UpdateDebtController(c echo.Context) error {
 
 	detail := c.FormValue("detail")
 
+	debtor_id := middleware.GetClaims(c).Id
+
 	debt := model.Debt{
 		CreditorName: creditor_name,
 		Date:         datatypes.Date(date),
 		Amount:       amount,
 		Detail:       detail,
-		DebtorID:     claims.Id,
+		DebtorID:     debtor_id,
 	}
 
-	if err := service.GetDebtRepository().UpdateDebtController(&debt, id, claims.Id); err != nil {
+	if err := service.GetDebtRepository().UpdateDebtController(&debt, id, debtor_id); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"message": err.Error(),
 		})
 	}
-
-	// debtById := config.DB.Model(&debts).Where("id = ? AND debtor_id = ?", id, claims.Id).Updates(model.Debt{
-	// 	CreditorName: creditor_name, Date: datatypes.Date(date), Amount: amount, Detail: detail})
-
-	// if err := debtById.Error; err != nil {
-	// 	return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	// }
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success update debt by id",
