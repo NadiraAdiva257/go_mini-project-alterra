@@ -35,7 +35,7 @@ func TestCreateDebtController(t *testing.T) {
 	e := echo.New()
 
 	bDataDebt, _ := json.Marshal(dataDebt)
-	req := httptest.NewRequest(http.MethodPost, "/debtors", bytes.NewReader(bDataDebt))
+	req := httptest.NewRequest(http.MethodPost, "/debts", bytes.NewReader(bDataDebt))
 	req.Header.Set("content-type", "application/json")
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
@@ -46,6 +46,40 @@ func TestCreateDebtController(t *testing.T) {
 	})
 
 	CreateDebtController(c)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+}
+
+func TestUpdateDebtController(t *testing.T) {
+	debtRepository := &service.DebtRepositoryMock{Mock: mock.Mock{}}
+	service.SetDebtRepository(debtRepository)
+
+	dataDebt := model.Debt{
+		CreditorName: "mayla",
+		Date:         datatypes.Date(time.Now()),
+		Amount:       23000,
+		Detail:       "ayam",
+		DebtorID:     1,
+	}
+
+	debtRepository.Mock.On("UpdateDebtController", &dataDebt, 1, 2).Return(nil)
+
+	e := echo.New()
+
+	bDataDebt, _ := json.Marshal(dataDebt)
+	req := httptest.NewRequest(http.MethodPut, "/debts:id", bytes.NewReader(bDataDebt))
+	req.Header.Set("content-type", "application/json")
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetParamNames("id")
+	c.SetParamValues("1")
+
+	user := &middleware.JwtCustomClaims{}
+	c.Set("user", &jwt.Token{
+		Claims: user,
+	})
+
+	UpdateDebtController(c)
 
 	assert.Equal(t, http.StatusOK, rec.Code)
 }
@@ -105,8 +139,8 @@ func TestGetDebtByCreditorController(t *testing.T) {
 
 	e := echo.New()
 
-	bDataDebtor, _ := json.Marshal(result)
-	req := httptest.NewRequest(http.MethodGet, "/debts/creditor", bytes.NewReader(bDataDebtor))
+	bDataDebt, _ := json.Marshal(result)
+	req := httptest.NewRequest(http.MethodGet, "/debts/creditor", bytes.NewReader(bDataDebt))
 	req.Header.Set("content-type", "application/json")
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)

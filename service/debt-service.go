@@ -10,6 +10,7 @@ import (
 
 type IDebtService interface {
 	CreateDebtController(debt *model.Debt) error
+	UpdateDebtController(debtUpdate *model.Debt, id int, debtor_id int) error
 	DeleteDebtController(id, debtor_id int) error
 	GetDebtByCreditorController(creditor_name string, debtor_id int) (map[string]interface{}, error)
 }
@@ -37,6 +38,16 @@ func SetDebtRepository(dr IDebtService) {
 
 func (d *DebtRepository) CreateDebtController(debt *model.Debt) error {
 	if err := config.DB.Save(&debt); err != nil {
+		return err.Error
+	}
+
+	return nil
+}
+
+func (d *DebtRepository) UpdateDebtController(debtUpdate *model.Debt, id int, debtor_id int) error {
+	var debt model.Debt
+
+	if err := config.DB.Model(&debt).Where("id = ? AND debtor_id = ?", id, debtor_id).Updates(debtUpdate); err != nil {
 		return err.Error
 	}
 
