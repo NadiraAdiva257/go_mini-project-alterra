@@ -17,9 +17,6 @@ import (
 
 // buat hutang
 func CreateDebtController(c echo.Context) error {
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*middleware.JwtCustomClaims)
-
 	creditor_name := c.FormValue("creditor_name")
 
 	formatDate := "2006-01-02"
@@ -35,16 +32,20 @@ func CreateDebtController(c echo.Context) error {
 
 	detail := c.FormValue("detail")
 
+	debtor_id := middleware.GetClaims(c).Id
+
 	debt := model.Debt{
 		CreditorName: creditor_name,
 		Date:         datatypes.Date(date),
 		Amount:       amount,
 		Detail:       detail,
-		DebtorID:     claims.Id,
+		DebtorID:     debtor_id,
 	}
 
-	if err := config.DB.Save(&debt).Error; err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	if err := service.GetDebtRepository().CreateDebtController(&debt); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message": err.Error(),
+		})
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
