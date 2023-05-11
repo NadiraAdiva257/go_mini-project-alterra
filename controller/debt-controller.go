@@ -105,6 +105,7 @@ func DeleteDebtController(c echo.Context) error {
 			"message": err.Error(),
 		})
 	}
+
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success delete debt by id",
 	})
@@ -258,17 +259,27 @@ func GetDebtByTimeController(c echo.Context) error {
 
 // cari daftar hutang berdasarkan nama kreditur
 func GetDebtByCreditorController(c echo.Context) error {
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*middleware.JwtCustomClaims)
-
 	var debts []model.Debt
 	var resultTotal []ResultTotal
 	var result2 []Result2
 
+	debtor_id := middleware.GetClaims(c).Id
 	creditor := c.QueryParam("creditor_name")
 
-	debtByCreditor := config.DB.Model(&debts).Select("sum(amount) AS total").Where("creditor_name = ? AND debtor_id = ?", creditor, claims.Id).Find(&resultTotal)
-	debtByCreditor2 := config.DB.Model(&debts).Where("creditor_name = ? AND debtor_id = ?", creditor, claims.Id).Find(&result2)
+	// result, err := service.GetDebtRepository().GetDebtByCreditorController(creditor, claims.Id)
+	// if err != nil {
+	// 	return c.JSON(http.StatusBadRequest, map[string]interface{}{
+	// 		"message": err.Error(),
+	// 	})
+	// } else {
+	// 	return c.JSON(http.StatusOK, map[string]interface{}{
+	// 		"total debt": result["total debt"],
+	// 		creditor:     result[creditor],
+	// 	})
+	// }
+
+	debtByCreditor := config.DB.Model(&debts).Select("sum(amount) AS total").Where("creditor_name = ? AND debtor_id = ?", creditor, debtor_id).Find(&resultTotal)
+	debtByCreditor2 := config.DB.Model(&debts).Where("creditor_name = ? AND debtor_id = ?", creditor, debtor_id).Find(&result2)
 
 	if err := debtByCreditor.Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
