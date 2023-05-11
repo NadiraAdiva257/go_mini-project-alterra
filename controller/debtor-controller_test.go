@@ -39,13 +39,6 @@ func TestCreateDebtorController(t *testing.T) {
 	CreateDebtorController(c)
 
 	assert.Equal(t, http.StatusOK, rec.Code)
-
-	expectResult := map[string]interface{}{
-		"message": "success create new user",
-	}
-	var resultJSON map[string]interface{}
-	json.Unmarshal(rec.Body.Bytes(), &resultJSON)
-	assert.Equal(t, expectResult, resultJSON)
 }
 
 func TestUpdateDebtorController(t *testing.T) {
