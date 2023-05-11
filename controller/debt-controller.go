@@ -134,26 +134,26 @@ type ResultTotal struct {
 
 // lihat keseluruhan daftar hutang berdasarkan pengelompokan waktu
 func GetAllDebtByTimeController(c echo.Context) error {
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*middleware.JwtCustomClaims)
-
+	var debtor_id = middleware.GetClaims(c).Id
 	var debts []model.Debt
-	var debtByTime *gorm.DB
-	var debtByTime2 *gorm.DB
+	var dateArray []string
+
 	var resultErr error
 	var result1 []Result1
 	var resultTotal []ResultTotal
 
-	timeDesc := TimeDesc(c)
+	dateDesc := config.DB.Order("date desc").Model(&debts).Distinct("date").Where("debtor_id = ?", debtor_id).Find(&dateArray)
+	if err := dateDesc.Error; err != nil {
+		echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
 
-	for _, value := range timeDesc {
-		debtByTime = config.DB.Model(&debts).Where("date = ? AND debtor_id = ?", value, claims.Id).Find(&result1)
-		debtByTime2 = config.DB.Model(&debts).Select("sum(amount) AS total").Where("date = ? AND debtor_id = ?", value, claims.Id).Find(&resultTotal)
-
+	for _, value := range dateArray {
+		debtByTime := config.DB.Model(&debts).Where("date = ? AND debtor_id = ?", value, debtor_id).Find(&result1)
 		if err := debtByTime.Error; err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
+		debtByTime2 := config.DB.Model(&debts).Select("sum(amount) AS total").Where("date = ? AND debtor_id = ?", value, debtor_id).Find(&resultTotal)
 		if err := debtByTime2.Error; err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
@@ -165,22 +165,6 @@ func GetAllDebtByTimeController(c echo.Context) error {
 	}
 
 	return resultErr
-}
-
-func TimeDesc(c echo.Context) []string {
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*middleware.JwtCustomClaims)
-
-	var debts []model.Debt
-	var result []string
-
-	dateDesc := config.DB.Order("date desc").Model(&debts).Distinct("date").Where("debtor_id = ?", claims.Id).Find(&result)
-
-	if err := dateDesc.Error; err != nil {
-		echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-
-	return result
 }
 
 // melihat keseluruhan daftar hutang berdasarkan pengelompokan nama kreditur
