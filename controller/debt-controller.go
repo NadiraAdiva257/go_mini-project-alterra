@@ -308,7 +308,6 @@ func GetAllDebtByTheHighest(c echo.Context) error {
 	var creditorTotalArray []int
 
 	var resultErr error
-	var resultTotal ResultTotal
 	var result2 []Result2
 
 	creditorName := config.DB.Order("sum(amount) desc").Model(&debts).Select("creditor_name").Where("debtor_id = ?", debtor_id).Group("creditor_name").Find(&creditorNameArray)
@@ -322,15 +321,13 @@ func GetAllDebtByTheHighest(c echo.Context) error {
 	}
 
 	for i, value := range creditorNameArray {
-		resultTotal.Total = creditorTotalArray[i]
-
 		debtByHighest := config.DB.Model(&debts).Where("creditor_name = ? AND debtor_id = ?", value, debtor_id).Find(&result2)
 		if err := debtByHighest.Error; err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
 		resultErr = c.JSON(http.StatusOK, map[string]interface{}{
-			"total debt": resultTotal,
+			"total debt": creditorTotalArray[i],
 			value:        result2,
 		})
 	}
