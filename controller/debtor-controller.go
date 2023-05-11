@@ -84,6 +84,6 @@ func UpdateDebtorController(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "succes update debtor by id",
+		"message": "succes update debtor",
 	})
 }
