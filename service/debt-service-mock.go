@@ -13,6 +13,14 @@ type DebtRepositoryMock struct {
 	Mock mock.Mock
 }
 
+func (dm *DebtRepositoryMock) CreateDebtController(debt *model.Debt) error {
+	if debt == nil {
+		return errors.New("error")
+	} else {
+		return nil
+	}
+}
+
 func (dm *DebtRepositoryMock) DeleteDebtController(id, debtor_id int) error {
 	var debt []model.Debt
 	var result error

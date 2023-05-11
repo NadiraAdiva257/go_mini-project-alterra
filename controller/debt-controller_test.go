@@ -11,13 +11,44 @@ import (
 	"testing"
 	"time"
 
-	"gorm.io/datatypes"
-
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"gorm.io/datatypes"
 )
+
+func TestCreateDebtController(t *testing.T) {
+	debtRepository := &service.DebtRepositoryMock{Mock: mock.Mock{}}
+	service.SetDebtRepository(debtRepository)
+
+	dataDebt := model.Debt{
+		CreditorName: "mayla",
+		Date:         datatypes.Date(time.Now()),
+		Amount:       23000,
+		Detail:       "ayam",
+		DebtorID:     1,
+	}
+
+	debtRepository.Mock.On("CreateDebtController", &dataDebt).Return(nil)
+
+	e := echo.New()
+
+	bDataDebt, _ := json.Marshal(dataDebt)
+	req := httptest.NewRequest(http.MethodPost, "/debtors", bytes.NewReader(bDataDebt))
+	req.Header.Set("content-type", "application/json")
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	user := &middleware.JwtCustomClaims{}
+	c.Set("user", &jwt.Token{
+		Claims: user,
+	})
+
+	CreateDebtController(c)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+}
 
 func TestDeleteDebtController(t *testing.T) {
 	debtRepository := &service.DebtRepositoryMock{Mock: mock.Mock{}}
