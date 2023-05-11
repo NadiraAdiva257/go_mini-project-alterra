@@ -169,26 +169,26 @@ func GetAllDebtByTimeController(c echo.Context) error {
 
 // melihat keseluruhan daftar hutang berdasarkan pengelompokan nama kreditur
 func GetAllDebtByCreditorController(c echo.Context) error {
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*middleware.JwtCustomClaims)
-
+	var debtor_id = middleware.GetClaims(c).Id
+	var creditorNameArray []string
 	var debts []model.Debt
-	var debtByCreditor *gorm.DB
-	var debtByCreditor2 *gorm.DB
+
 	var resultErr error
 	var result2 []Result2
 	var resultTotal []ResultTotal
 
-	creditorNameDesc := CreditorNameAsc(c)
+	creditorNameAsc := config.DB.Order("creditor_name asc").Model(&debts).Distinct("creditor_name").Where("debtor_id = ?", debtor_id).Find(&creditorNameArray)
+	if err := creditorNameAsc.Error; err != nil {
+		echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
 
-	for _, value := range creditorNameDesc {
-		debtByCreditor = config.DB.Model(&debts).Where("creditor_name = ? AND debtor_id = ?", value, claims.Id).Find(&result2)
-		debtByCreditor2 = config.DB.Model(&debts).Select("sum(amount) AS total").Where("creditor_name = ? AND debtor_id = ?", value, claims.Id).Find(&resultTotal)
-
+	for _, value := range creditorNameArray {
+		debtByCreditor := config.DB.Model(&debts).Where("creditor_name = ? AND debtor_id = ?", value, debtor_id).Find(&result2)
 		if err := debtByCreditor.Error; err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
+		debtByCreditor2 := config.DB.Model(&debts).Select("sum(amount) AS total").Where("creditor_name = ? AND debtor_id = ?", value, debtor_id).Find(&resultTotal)
 		if err := debtByCreditor2.Error; err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
@@ -200,22 +200,6 @@ func GetAllDebtByCreditorController(c echo.Context) error {
 	}
 
 	return resultErr
-}
-
-func CreditorNameAsc(c echo.Context) []string {
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*middleware.JwtCustomClaims)
-
-	var debts []model.Debt
-	var result []string
-
-	creditorName := config.DB.Order("creditor_name asc").Model(&debts).Distinct("creditor_name").Where("debtor_id = ?", claims.Id).Find(&result)
-
-	if err := creditorName.Error; err != nil {
-		echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-
-	return result
 }
 
 // cari daftar hutang berdasarkan waktu
