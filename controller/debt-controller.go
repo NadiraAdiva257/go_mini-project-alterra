@@ -229,37 +229,24 @@ func GetDebtByTimeController(c echo.Context) error {
 func GetDebtByCreditorController(c echo.Context) error {
 	var debtor_id = middleware.GetClaims(c).Id
 	var debts []model.Debt
-
-	var resultTotal []ResultTotal
-	var result2 []Result2
+	var result []Result2
+	var totalHutang int
 
 	creditor := c.QueryParam("creditor_name")
 
-	// result, err := service.GetDebtRepository().GetDebtByCreditorController(creditor, claims.Id)
-	// if err != nil {
-	// 	return c.JSON(http.StatusBadRequest, map[string]interface{}{
-	// 		"message": err.Error(),
-	// 	})
-	// } else {
-	// 	return c.JSON(http.StatusOK, map[string]interface{}{
-	// 		"total debt": result["total debt"],
-	// 		creditor:     result[creditor],
-	// 	})
-	// }
-
-	debtByCreditor := config.DB.Model(&debts).Select("sum(amount) AS total").Where("creditor_name = ? AND debtor_id = ?", creditor, debtor_id).Find(&resultTotal)
+	debtByCreditor := config.DB.Model(&debts).Where("creditor_name = ? AND debtor_id = ?", creditor, debtor_id).Find(&result)
 	if err := debtByCreditor.Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	debtByCreditor2 := config.DB.Model(&debts).Where("creditor_name = ? AND debtor_id = ?", creditor, debtor_id).Find(&result2)
-	if err := debtByCreditor2.Error; err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	for _, value := range result {
+		totalHutang += value.Amount
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"total debt": resultTotal,
-		creditor:     result2,
+		"creditor name": creditor,
+		"debt":          result,
+		"total debt":    totalHutang,
 	})
 }
 
