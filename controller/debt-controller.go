@@ -204,7 +204,6 @@ func GetAllDebtByCreditorController(c echo.Context) error {
 func GetDebtByTimeController(c echo.Context) error {
 	var debtor_id = middleware.GetClaims(c).Id
 	var debts []model.Debt
-
 	var resultTotal []ResultTotal
 	var result1 []Result1
 
@@ -230,24 +229,23 @@ func GetDebtByTimeController(c echo.Context) error {
 func GetDebtByCreditorController(c echo.Context) error {
 	var debtor_id = middleware.GetClaims(c).Id
 	var debts []model.Debt
-
-	var result2 []Result2
+	var result []Result2
 	var totalHutang int
 
 	creditor := c.QueryParam("creditor_name")
 
-	debtByCreditor2 := config.DB.Model(&debts).Where("creditor_name = ? AND debtor_id = ?", creditor, debtor_id).Find(&result2)
-	if err := debtByCreditor2.Error; err != nil {
+	debtByCreditor := config.DB.Model(&debts).Where("creditor_name = ? AND debtor_id = ?", creditor, debtor_id).Find(&result)
+	if err := debtByCreditor.Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	for _, value := range result2 {
+	for _, value := range result {
 		totalHutang += value.Amount
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"creditor name": creditor,
-		"debt":          result2,
+		"debt":          result,
 		"total debt":    totalHutang,
 	})
 }
