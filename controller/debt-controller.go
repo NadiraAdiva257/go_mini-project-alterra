@@ -255,31 +255,33 @@ func GetAllDebtByTheHighest(c echo.Context) error {
 	var debtor_id = middleware.GetClaims(c).Id
 	var debts []model.Debt
 	var creditorNameArray []string
-	var creditorTotalArray []int
 
+	var result []Result2
+	var totalHutang int
 	var resultErr error
-	var result2 []Result2
 
 	creditorName := config.DB.Order("sum(amount) desc").Model(&debts).Select("creditor_name").Where("debtor_id = ?", debtor_id).Group("creditor_name").Find(&creditorNameArray)
 	if err := creditorName.Error; err != nil {
 		echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	creditorTotal := config.DB.Order("sum(amount) desc").Model(&debts).Select("sum(amount)").Where("debtor_id = ?", debtor_id).Group("creditor_name").Find(&creditorTotalArray)
-	if err := creditorTotal.Error; err != nil {
-		echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-
-	for i, value := range creditorNameArray {
-		debtByHighest := config.DB.Model(&debts).Where("creditor_name = ? AND debtor_id = ?", value, debtor_id).Find(&result2)
+	for _, value := range creditorNameArray {
+		debtByHighest := config.DB.Model(&debts).Where("creditor_name = ? AND debtor_id = ?", value, debtor_id).Find(&result)
 		if err := debtByHighest.Error; err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
+		for _, value := range result {
+			totalHutang += value.Amount
+		}
+
 		resultErr = c.JSON(http.StatusOK, map[string]interface{}{
-			"total debt": creditorTotalArray[i],
-			value:        result2,
+			"creditor name": value,
+			"debt":          result,
+			"total debt":    totalHutang,
 		})
+
+		totalHutang = 0
 	}
 
 	return resultErr
