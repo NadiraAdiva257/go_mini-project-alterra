@@ -136,9 +136,9 @@ func GetAllDebtByTimeController(c echo.Context) error {
 	var debts []model.Debt
 	var dateArray []string
 
+	var result []Result1
+	var totalHutang int
 	var resultErr error
-	var result1 []Result1
-	var resultTotal []ResultTotal
 
 	dateDesc := config.DB.Order("date desc").Model(&debts).Distinct("date").Where("debtor_id = ?", debtor_id).Find(&dateArray)
 	if err := dateDesc.Error; err != nil {
@@ -146,20 +146,22 @@ func GetAllDebtByTimeController(c echo.Context) error {
 	}
 
 	for _, value := range dateArray {
-		debtByTime := config.DB.Model(&debts).Where("date = ? AND debtor_id = ?", value, debtor_id).Find(&result1)
+		debtByTime := config.DB.Model(&debts).Where("date = ? AND debtor_id = ?", value, debtor_id).Find(&result)
 		if err := debtByTime.Error; err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		debtByTime2 := config.DB.Model(&debts).Select("sum(amount) AS total").Where("date = ? AND debtor_id = ?", value, debtor_id).Find(&resultTotal)
-		if err := debtByTime2.Error; err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		for _, value := range result {
+			totalHutang += value.Amount
 		}
 
 		resultErr = c.JSON(http.StatusOK, map[string]interface{}{
-			value:        result1,
-			"total debt": resultTotal,
+			"date":       value,
+			"debt":       result,
+			"total debt": totalHutang,
 		})
+
+		totalHutang = 0
 	}
 
 	return resultErr
@@ -171,9 +173,9 @@ func GetAllDebtByCreditorController(c echo.Context) error {
 	var creditorNameArray []string
 	var debts []model.Debt
 
+	var result []Result2
+	var totalHutang int
 	var resultErr error
-	var result2 []Result2
-	var resultTotal []ResultTotal
 
 	creditorNameAsc := config.DB.Order("creditor_name asc").Model(&debts).Distinct("creditor_name").Where("debtor_id = ?", debtor_id).Find(&creditorNameArray)
 	if err := creditorNameAsc.Error; err != nil {
@@ -181,20 +183,22 @@ func GetAllDebtByCreditorController(c echo.Context) error {
 	}
 
 	for _, value := range creditorNameArray {
-		debtByCreditor := config.DB.Model(&debts).Where("creditor_name = ? AND debtor_id = ?", value, debtor_id).Find(&result2)
+		debtByCreditor := config.DB.Model(&debts).Where("creditor_name = ? AND debtor_id = ?", value, debtor_id).Find(&result)
 		if err := debtByCreditor.Error; err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		debtByCreditor2 := config.DB.Model(&debts).Select("sum(amount) AS total").Where("creditor_name = ? AND debtor_id = ?", value, debtor_id).Find(&resultTotal)
-		if err := debtByCreditor2.Error; err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		for _, value := range result {
+			totalHutang += value.Amount
 		}
 
 		resultErr = c.JSON(http.StatusOK, map[string]interface{}{
-			value:        result2,
-			"total debt": resultTotal,
+			"creditor name": value,
+			"debt":          result,
+			"total debt":    totalHutang,
 		})
+
+		totalHutang = 0
 	}
 
 	return resultErr
