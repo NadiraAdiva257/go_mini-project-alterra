@@ -126,10 +126,6 @@ type Result2 struct {
 	Detail string
 }
 
-type ResultTotal struct {
-	Total int
-}
-
 // lihat keseluruhan daftar hutang berdasarkan pengelompokan waktu
 func GetAllDebtByTimeController(c echo.Context) error {
 	var debtor_id = middleware.GetClaims(c).Id
@@ -295,31 +291,31 @@ func GetAllDebtByTheHighest(c echo.Context) error {
 func GetAllDebtByTheLongest(c echo.Context) error {
 	var debtor_id = middleware.GetClaims(c).Id
 	var debts []model.Debt
-	var creditorNameArray []string
-	var creditorTotalArray []int
 
+	type Temp struct {
+		CreditorName string
+		TotalDay     int
+	}
+	var temp []Temp
+
+	var result []Result2
 	var resultErr error
-	var result2 []Result2
 
-	creditorName := config.DB.Order("datediff(curdate(), min(date)) desc").Model(&debts).Select("creditor_name").Where("debtor_id = ?", debtor_id).Group("creditor_name").Find(&creditorNameArray)
+	creditorName := config.DB.Order("total_day desc").Model(&debts).Select("creditor_name AS creditor_name, datediff(curdate(), min(date)) AS total_day").Where("debtor_id = ?", debtor_id).Group("creditor_name").Find(&temp)
 	if err := creditorName.Error; err != nil {
 		echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	creditorTotal := config.DB.Order("datediff(curdate(), min(date)) desc").Model(&debts).Select("datediff(curdate(), min(date))").Where("debtor_id = ?", debtor_id).Group("creditor_name").Find(&creditorTotalArray)
-	if err := creditorTotal.Error; err != nil {
-		echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-
-	for i, value := range creditorNameArray {
-		debtByLongest := config.DB.Order("date asc").Model(&debts).Where("creditor_name = ? AND debtor_id = ?", value, debtor_id).Find(&result2)
+	for _, value := range temp {
+		debtByLongest := config.DB.Order("date asc").Model(&debts).Where("creditor_name = ? AND debtor_id = ?", value.CreditorName, debtor_id).Find(&result)
 		if err := debtByLongest.Error; err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
 		resultErr = c.JSON(http.StatusOK, map[string]interface{}{
-			"total day": creditorTotalArray[i],
-			value:       result2,
+			"creditor name": value.CreditorName,
+			"debt":          result,
+			"total day":     value.TotalDay,
 		})
 	}
 
